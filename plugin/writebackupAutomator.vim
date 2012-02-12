@@ -23,7 +23,11 @@ let g:loaded_writebackupAutomator = 1
 "- functions ------------------------------------------------------------------
 
 function! s:InterceptWrite()
-    let l:filespec = expand('%')
+    " Note: Need to use <afile> instead of % to capture the filename the buffer
+    " is written to. Otherwise, :WriteBackup writes would mistakenly trigger
+    " this function. 
+    let l:filespec = expand('<afile>')
+
     if ! writebackupVersionControl#IsOriginalFile(l:filespec)
 	" No backup of backup files. 
 	return
@@ -53,7 +57,32 @@ function! s:InterceptWrite()
 	endif
     endif
 
-    call writebackupVersionControl#WriteBackupOfSavedOriginal(l:filespec, 0)
+    let l:backupStatus = writebackupVersionControl#WriteBackupOfSavedOriginal(l:filespec, 0)
+    if l:backupStatus == 0
+	" File is already backed up; nothing to do. 
+    else
+	" An error occurred, or the writing of the backup file was successful. 
+	" WriteBackupVersionControl has already printed a corresponding status
+	" message, but it'll soon be overwritten by the status message of the
+	" impending :write command. 
+	if l:backupStatus == 1
+	    " As it's cumbersome to get the backup filespec from
+	    " WriteBackupVersionControl, we re-create it here ourselves. 
+	    let l:message = printf('Automatically backed up as "%s.%sa"',
+	    \	writebackup#AdjustFilespecForBackupDir(l:filespec, 1),
+	    \	l:today
+	    \)
+	elseif l:backupStatus == -1
+	    " Reuse the error message from WriteBackupVersionControl. 
+	    let l:message = v:errmsg
+	endif
+
+	" To ensure that the message is visible to the user, print it via a
+	" fire-once autocmd _after_ the original buffer is written. 
+	augroup writebackupAutomatorNotification
+	    execute 'autocmd! BufWritePost <buffer> echomsg' string(l:message) '| autocmd! writebackupAutomatorNotification'
+	augroup END
+    endif
 endfunction
 
 
