@@ -1,0 +1,7 @@
+"not important.txt" 
+
+/"not important.txt.20\d\{6}a" written/
+
+"not important.txt" 
+
+/Automatically backed up as "not important.txt.20\d\{6}a"/
