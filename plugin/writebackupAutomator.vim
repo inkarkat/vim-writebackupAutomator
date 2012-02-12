@@ -30,6 +30,25 @@ let g:loaded_writebackupAutomator = 1
 function! s:today()
     return strftime('%Y%m%d')
 endfunction
+function! writebackupAutomator#Message( text, ... )
+    if a:0
+	execute 'echohl' a:1
+    endif
+    echomsg a:text
+    if a:0
+	echohl None
+    endif
+endfunction
+function! s:DelayedMessage( text, ... )
+    " To ensure that the message is visible to the user, print it via a
+    " fire-once autocmd _after_ the original buffer is written. 
+    augroup writebackupAutomatorNotification
+	execute printf('autocmd! BufWritePost <buffer> call writebackupAutomator#Message(%s)|autocmd! writebackupAutomatorNotification',
+	\   string(a:text) .
+	\   (a:0 ? ', ' . string(a:1) : '')
+	\)
+    augroup END
+endfunction
 function! s:InterceptWrite()
     " Note: Need to use <afile> instead of % to capture the filename the buffer
     " is written to. Otherwise, :WriteBackup writes would mistakenly trigger
@@ -69,10 +88,7 @@ function! s:InterceptWrite()
 	    return
 	elseif l:lastBackupDate ># l:today
 	    let v:warningmsg = 'The last backup was done in the future?!'
-	    echohl WarningMsg
-	    echomsg v:warningmsg
-	    echohl None
-
+	    call s:DelayedMessage(v:warningmsg, 'WarningMsg')
 	    return
 	endif
     endif
@@ -85,11 +101,10 @@ function! s:MakeBackup( filespec )
     " the "This file is already backed up" error is only informational here.
     " Therefore, suppress the message until all writes are done. 
     silent let l:backupStatus = writebackupVersionControl#WriteBackupOfSavedOriginal(a:filespec, 0)
-    let l:isError = 0
     if l:backupStatus == 0
 	" File is already backed up; turn the error into an informational
 	" message. 
-	let l:message = v:errmsg
+	call s:DelayedMessage(v:errmsg)
     elseif l:backupStatus == 1
 	" The writing of the backup file was successful. 
 	" As it's cumbersome to get the backup filespec from
@@ -98,22 +113,12 @@ function! s:MakeBackup( filespec )
 	\	writebackup#AdjustFilespecForBackupDir(a:filespec, 1),
 	\	s:today()
 	\)
+	call s:DelayedMessage(l:message)
     elseif l:backupStatus == -1
 	" An error occurred; reuse the error message from
 	" WriteBackupVersionControl. 
-	let l:message = v:errmsg
-	let l:isError = 1
+	call s:DelayedMessage(v:errmsg, 'ErrorMsg')
     endif
-
-    " To ensure that the message is visible to the user, print it via a
-    " fire-once autocmd _after_ the original buffer is written. 
-    augroup writebackupAutomatorNotification
-	execute 'autocmd! BufWritePost <buffer> '
-	\   (l:isError ? 'echohl ErrorMsg|' : '')
-	\   'echomsg' string(l:message) '|'
-	\   (l:isError ? 'echohl None|' : '')
-	\   'autocmd! writebackupAutomatorNotification'
-    augroup END
 endfunction
 
 
