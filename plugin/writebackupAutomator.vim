@@ -4,14 +4,19 @@
 " DEPENDENCIES:
 "   - Requires Vim 7.0 or higher. 
 "   - writebackup plugin (vimscript #1828). 
-"   - writebackupVersionControl plugin (vimscript #1829). 
+"   - writebackupVersionControl plugin (vimscript #1829), version 2.30 or higher. 
 
-" Copyright: (C) 2012 by Ingo Karkat
+" Copyright: (C) 2012 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'. 
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
+"   1.00.002	13-Feb-2012	Implement missing bits and pieces, driven by the
+"				test suite. 
+"				Make backup success and error messages visible
+"				to the user through a fire-once autocmd on
+"				BufWritePost. 
 "	001	10-Feb-2012	file creation
 
 " Avoid installing twice or when in unsupported Vim version. 
@@ -43,6 +48,12 @@ function! s:InterceptWrite()
 	if ! exists('b:writebackup') || ! b:writebackup
 	    return
 	endif
+
+	" When the buffer is flagged, but not yet persisted, do not attempt a
+	" backup. 
+	if ! filereadable(l:filespec)
+	    return
+	endif
     else
 	" If the buffer has been negatively flagged, do not perform a backup. 
 	if exists('b:writebackup') && ! b:writebackup
@@ -66,7 +77,10 @@ function! s:InterceptWrite()
 	endif
     endif
 
-    let l:backupStatus = writebackupVersionControl#WriteBackupOfSavedOriginal(l:filespec, 0)
+    call s:MakeBackup(l:filespec)
+endfunction
+function! s:MakeBackup( filespec )
+    let l:backupStatus = writebackupVersionControl#WriteBackupOfSavedOriginal(a:filespec, 0)
     if l:backupStatus == 0
 	" File is already backed up; nothing to do. 
     else
@@ -78,7 +92,7 @@ function! s:InterceptWrite()
 	    " As it's cumbersome to get the backup filespec from
 	    " WriteBackupVersionControl, we re-create it here ourselves. 
 	    let l:message = printf('Automatically backed up as "%s.%sa"',
-	    \	writebackup#AdjustFilespecForBackupDir(l:filespec, 1),
+	    \	writebackup#AdjustFilespecForBackupDir(a:filespec, 1),
 	    \	s:today()
 	    \)
 	elseif l:backupStatus == -1
