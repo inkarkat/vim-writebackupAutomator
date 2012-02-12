@@ -22,6 +22,9 @@ let g:loaded_writebackupAutomator = 1
 
 "- functions ------------------------------------------------------------------
 
+function! s:today()
+    return strftime('%Y%m%d')
+endfunction
 function! s:InterceptWrite()
     " Note: Need to use <afile> instead of % to capture the filename the buffer
     " is written to. Otherwise, :WriteBackup writes would mistakenly trigger
@@ -41,8 +44,14 @@ function! s:InterceptWrite()
 	    return
 	endif
     else
+	" If the buffer has been negatively flagged, do not perform a backup. 
+	if exists('b:writebackup') && ! b:writebackup
+	    return
+	endif
+
+	" When there's already a backup from today, do not perform a backup. 
 	let l:lastBackupDate = writebackupVersionControl#GetVersion(l:backupFiles[-1])[0:-2]
-	let l:today = strftime('%Y%m%d')
+	let l:today = s:today()
 
 	if l:lastBackupDate ==# l:today
 	    " Today, a backup was already made. 
@@ -70,7 +79,7 @@ function! s:InterceptWrite()
 	    " WriteBackupVersionControl, we re-create it here ourselves. 
 	    let l:message = printf('Automatically backed up as "%s.%sa"',
 	    \	writebackup#AdjustFilespecForBackupDir(l:filespec, 1),
-	    \	l:today
+	    \	s:today()
 	    \)
 	elseif l:backupStatus == -1
 	    " Reuse the error message from WriteBackupVersionControl. 
