@@ -1,6 +1,6 @@
 "not important.txt" 
 
-/"not important.txt.20\d\{6}a" written/
+/\s*"not important.txt.20\d\{6}a" written/
 
 "not important.txt" 
 
