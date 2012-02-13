@@ -62,33 +62,43 @@ function! s:InterceptWrite()
 
     let l:backupFiles = writebackupVersionControl#GetAllBackupsForFile(l:filespec)
     if empty(l:backupFiles)
-	" No backups exist. Unless the buffer has been flagged, do not perform a
-	" backup. 
+	" No backups exist. 
 	if ! exists('b:writebackup') || ! b:writebackup
+	    " Unless the buffer has been flagged, do not perform a backup. 
 	    return
 	endif
 
-	" When the buffer is flagged, but not yet persisted, do not attempt a
-	" backup. 
 	if ! filereadable(l:filespec)
+	    " When the buffer is flagged, but not yet persisted, do not attempt
+	    " a backup. 
 	    return
 	endif
     else
-	" If the buffer has been negatively flagged, do not perform a backup. 
 	if exists('b:writebackup') && ! b:writebackup
+	    " If the buffer has been negatively flagged, do not perform a
+	    " backup. 
 	    return
 	endif
 
-	" When there's already a backup from today, do not perform a backup. 
 	let l:lastBackupDate = writebackupVersionControl#GetVersion(l:backupFiles[-1])[0:-2]
 	let l:today = s:today()
 
 	if l:lastBackupDate ==# l:today
-	    " Today, a backup was already made. 
+	    " When there's already a backup from today, do not perform a backup. 
 	    return
 	elseif l:lastBackupDate ># l:today
+	    " What is this? There's already a backup from the future! 
 	    let v:warningmsg = 'The last backup was done in the future?!'
 	    call s:DelayedMessage(v:warningmsg, 'WarningMsg')
+	    return
+	endif
+
+	let l:originalFilespec = expand('%')
+	if strftime('%Y%m%d', getftime(l:originalFilespec)) == l:today
+	    " The original file was already written today; either outside of
+	    " Vim, or it was already backed up before, and this is the second
+	    " write today. Do not perform a backup. 
+	    call s:DelayedMessage('Skip automatic backup; file was already modified today.')
 	    return
 	endif
     endif
