@@ -1,6 +1,6 @@
 "someplace else.txt" 
 
-/"backup[/\\]someplace else.txt.20\d\{6}a" written/
+/\s*"backup[/\\]someplace else.txt.20\d\{6}a" written/
 
 "someplace else.txt" 
 
