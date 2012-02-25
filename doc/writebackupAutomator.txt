@@ -26,7 +26,8 @@ new backup - without any action on your side?
 
 This plugin builds on the |writebackup.vim| and
 |writebackupVersionControl.vim| plugins, and automatically writes a backup on
-the first write of a file that was backed up in the past, but not yet today.
+a day's first write of a file that was backed up in the past, but not yet
+today. 
 This gives you one no-hassle, worry-free backup every day. For many
 |writebackup.vim| use cases (like editing config files distributed all over
 /etc/), this initial "good state from the past" backup is the most important
@@ -38,9 +39,15 @@ USAGE						  *writebackupAutomator-usage*
 
 Once any backup exists (you can check via |:WriteBackupListVersions|), a new
 backup will be written on each day when you first persist the buffer via
-|:write|. It is still a good practice to trigger backups via |:WriteBackup|
-yourself, and just use the writebackupAutomator plugin as a safety net, for
-those instances where you forget to backup. 
+|:write|, provided that the file has not been modified yet today. (Otherwise,
+you would not be able to undo the automatic backup via
+|:WriteBackupDeleteLastBackup|; the automatic backup would keep reappearing
+after each :write.) Watch out for file synchronization tools and version
+control systems that may silently update the file modification date to today
+and therefore prevent automatic backups! 
+For this and other reasons, it is still a good practice to trigger backups via
+|:WriteBackup| yourself, and just use the writebackupAutomator plugin as a
+safety net, for those instances where you forget to backup. 
 
 ==============================================================================
 INSTALLATION				   *writebackupAutomator-installation*
@@ -78,24 +85,19 @@ location.
 ==============================================================================
 LIMITATIONS				    *writebackupAutomator-limitations*
 
-- If identical backups are avoided without redate (let
-  g:WriteBackup_AvoidIdenticalBackups = '1'), we need to use the original
-  file's modification date as an indicator whether we're in a subsequent write
-  to avoid a belated automatic backup. This means that in this configuration,
-  no automatic backups will be performed if the original file somehow already
-  has a file modification date of today. (E.g. because it was synchronized
-  from another system.) 
-
 KNOWN PROBLEMS				 *writebackupAutomator-known-problems*
 
 TODO						   *writebackupAutomator-todo*
 
 IDEAS						  *writebackupAutomator-ideas*
 
+- Consider b:writebackup = 2 to skip the file modification and identical
+  backup checks. 
+
 ==============================================================================
 HISTORY						*writebackupAutomator-history*
 
-1.00	15-Feb-2012
+1.00	16-Feb-2012
 First published version. 
 
 0.01	10-Feb-2012
