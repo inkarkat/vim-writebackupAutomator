@@ -12,7 +12,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS 
-"   1.00.003	14-Feb-2012	Consider new default "redate" for
+"	004	16-Feb-2012	Never perform an automatic backup when the
+"				original file was already modified today. 
+"   	003 	14-Feb-2012	Consider new default "redate" for
 "				g:WriteBackup_AvoidIdenticalBackups that renames
 "				an identical backup from an earlier date to be
 "				the first backup of today. 
@@ -96,28 +98,15 @@ function! s:InterceptWrite()
 	    call s:DelayedMessage(v:warningmsg, 'WarningMsg')
 	    return
 	endif
+    endif
 
-	if g:WriteBackup_AvoidIdenticalBackups ==# '1'
-	    " If no identical backups are avoided, or an identical backup is
-	    " redated to be today's first backup, we'll have a backup from
-	    " today, and subsequent writes will never create a backup, fine. 
-	    " But if identical backups are avoided without redate, a first write
-	    " will correctly determine that the file has already been backed up.
-	    " But after that, the original file has changed, and a second write
-	    " will find no backup from today, and also differences to the saved
-	    " original, and would incorrectly make an automated backup now. 
-	    " To avoid this (also persistently across Vim invocations), we use
-	    " the original file's modification date as an indicator whether
-	    " we're in this situation. 
-	    let l:originalFilespec = expand('%')
-	    if strftime('%Y%m%d', getftime(l:originalFilespec)) == l:today
-		" The original file was already written today; either outside of
-		" Vim, or it was already backed up at an earlier date, and this
-		" is the second write today. Do not perform a backup. 
-		call s:DelayedMessage('Skip automatic backup; file was already modified today.')
-		return
-	    endif
-	endif
+    let l:originalFilespec = expand('%')
+    if strftime('%Y%m%d', getftime(l:originalFilespec)) == s:today()
+	" The original file was already written today; either outside of Vim, or
+	" it was already backed up at an earlier date, and this is the second
+	" write today. Do not perform a backup. 
+	call s:DelayedMessage('Skip automatic backup; file was already modified today.')
+	return
     endif
 
     call s:MakeBackup(l:filespec)
