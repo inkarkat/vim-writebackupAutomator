@@ -1,13 +1,12 @@
-" Test no redate of automatic backup when original file is from today. 
-
-call vimtest#ErrorAndQuitIf(g:WriteBackup_AvoidIdenticalBackups !=# 'redate', 'Default behavior on identical backups is redate')
+" Test no flagged automatic backup when original file is from today. 
 
 cd $TEMP/WriteBackupTest
-edit important.txt
+edit not\ important.txt
+%s/just/today's/
     " Touch this. 
     let b:writebackup = 0
     write
-    unlet b:writebackup
+    let b:writebackup = 1
 write
 
 call ListFiles()
