@@ -1,36 +1,36 @@
 " writebackupAutomator.vim: writebackup plugin automatically writes a backup on
-" the first write. 
+" the first write.
 "
 " DEPENDENCIES:
-"   - Requires Vim 7.0 or higher. 
-"   - writebackup plugin (vimscript #1828), version 3.00 or higher. 
-"   - writebackupVersionControl plugin (vimscript #1829), version 3.00 or higher. 
+"   - Requires Vim 7.0 or higher.
+"   - writebackup plugin (vimscript #1828), version 3.00 or higher.
+"   - writebackupVersionControl plugin (vimscript #1829), version 3.00 or higher.
 
 " Copyright: (C) 2012 Ingo Karkat
-"   The VIM LICENSE applies to this script; see ':help copyright'. 
+"   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
-" REVISION	DATE		REMARKS 
+" REVISION	DATE		REMARKS
 "   1.01.005	26-Feb-2012	Rename b:writebackup to b:WriteBackup to be
 "				consistent with the other configuration
 "				variables of the WriteBackup family, and to
 "				avoid connotation with the built-in
 "				'writebackup' setting.
 "   1.00.004	16-Feb-2012	Never perform an automatic backup when the
-"				original file was already modified today. 
+"				original file was already modified today.
 "   	003 	14-Feb-2012	Consider new default "redate" for
 "				g:WriteBackup_AvoidIdenticalBackups that renames
 "				an identical backup from an earlier date to be
-"				the first backup of today. 
+"				the first backup of today.
 "	002 	13-Feb-2012	Implement missing bits and pieces, driven by the
-"				test suite. 
+"				test suite.
 "				Make backup success and error messages visible
 "				to the user through a fire-once autocmd on
-"				BufWritePost. 
+"				BufWritePost.
 "	001	10-Feb-2012	file creation
 
-" Avoid installing twice or when in unsupported Vim version. 
+" Avoid installing twice or when in unsupported Vim version.
 if exists('g:loaded_writebackupAutomator') || (v:version < 700)
     finish
 endif
@@ -52,7 +52,7 @@ function! writebackupAutomator#Message( text, ... )
 endfunction
 function! s:DelayedMessage( text, ... )
     " To ensure that the message is visible to the user, print it via a
-    " fire-once autocmd _after_ the original buffer is written. 
+    " fire-once autocmd _after_ the original buffer is written.
     augroup writebackupAutomatorNotification
 	execute printf('autocmd! BufWritePost <buffer> call writebackupAutomator#Message(%s)|autocmd! writebackupAutomatorNotification',
 	\   string(a:text) .
@@ -63,31 +63,31 @@ endfunction
 function! s:InterceptWrite()
     " Note: Need to use <afile> instead of % to capture the filename the buffer
     " is written to. Otherwise, :WriteBackup writes would mistakenly trigger
-    " this function. 
+    " this function.
     let l:filespec = expand('<afile>')
 
     if ! writebackupVersionControl#IsOriginalFile(l:filespec)
-	" No backup of backup files. 
+	" No backup of backup files.
 	return
     endif
 
     let l:backupFiles = writebackupVersionControl#GetAllBackupsForFile(l:filespec)
     if empty(l:backupFiles)
-	" No backups exist. 
+	" No backups exist.
 	if ! exists('b:WriteBackup') || ! b:WriteBackup
-	    " Unless the buffer has been flagged, do not perform a backup. 
+	    " Unless the buffer has been flagged, do not perform a backup.
 	    return
 	endif
 
 	if ! filereadable(l:filespec)
 	    " When the buffer is flagged, but not yet persisted, do not attempt
-	    " a backup. 
+	    " a backup.
 	    return
 	endif
     else
 	if exists('b:WriteBackup') && ! b:WriteBackup
 	    " If the buffer has been negatively flagged, do not perform a
-	    " backup. 
+	    " backup.
 	    return
 	endif
 
@@ -95,10 +95,10 @@ function! s:InterceptWrite()
 	let l:today = s:today()
 
 	if l:lastBackupDate ==# l:today
-	    " When there's already a backup from today, do not perform a backup. 
+	    " When there's already a backup from today, do not perform a backup.
 	    return
 	elseif l:lastBackupDate ># l:today
-	    " What is this? There's already a backup from the future! 
+	    " What is this? There's already a backup from the future!
 	    let v:warningmsg = 'The last backup was done in the future?!'
 	    call s:DelayedMessage(v:warningmsg, 'WarningMsg')
 	    return
@@ -109,7 +109,7 @@ function! s:InterceptWrite()
     if strftime('%Y%m%d', getftime(l:originalFilespec)) == s:today()
 	" The original file was already written today; either outside of Vim, or
 	" it was already backed up at an earlier date, and this is the second
-	" write today. Do not perform a backup. 
+	" write today. Do not perform a backup.
 	call s:DelayedMessage('Skip automatic backup; file was already modified today.')
 	return
     endif
@@ -120,25 +120,33 @@ function! s:MakeBackup( filespec )
     " Whatever WriteBackupVersionControl prints as status message, is soon
     " overwritten by the status message of the impending :write command. And,
     " the "This file is already backed up" error is only informational here.
-    " Therefore, suppress the message until all writes are done. 
+    " Therefore, suppress the message until all writes are done.
     silent let l:backupStatus = writebackupVersionControl#WriteBackupOfSavedOriginal(a:filespec, 0)
     if l:backupStatus == 0
 	" File is already backed up; turn the error into an informational
-	" message. 
+	" message.
 	call s:DelayedMessage(v:errmsg)
     elseif l:backupStatus == 1
-	" The writing of the backup file was successful. 
+	" The writing of the backup file was successful.
 	" As it's cumbersome to get the backup filespec from
-	" WriteBackupVersionControl, we re-create it here ourselves. 
+	" WriteBackupVersionControl, we re-create it here ourselves.
 	let l:message = printf('Automatically backed up as "%s.%sa"',
 	\	writebackup#AdjustFilespecForBackupDir(a:filespec, 1),
 	\	s:today()
 	\)
 	call s:DelayedMessage(l:message)
     elseif l:backupStatus == -1
-	" An error occurred; reuse the error message from
-	" WriteBackupVersionControl. 
-	call s:DelayedMessage(v:errmsg, 'ErrorMsg')
+	if filereadable(a:filespec)
+	    " An error occurred; reuse the error message from
+	    " WriteBackupVersionControl.
+	    call s:DelayedMessage(v:errmsg, 'ErrorMsg')
+	else
+	    " The current buffer hasn't been persisted yet, but somehow old
+	    " backups have been lying around, maybe because the original file
+	    " has been renamed and now re-created, but the backups were left in
+	    " place.
+	    call s:DelayedMessage("Skip automatic backup; this buffer hasn't been persisted yet, but old backups exist.")
+	endif
     endif
 endfunction
 
