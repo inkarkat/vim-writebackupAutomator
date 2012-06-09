@@ -1,3 +1,0 @@
-/\("important.txt".*\n\)\+\(\s*Failed to backup file: .*\(The system cannot find the file specified\|No such file or directory\).*\)/
-
-/\("important.txt".*\n\)\+\(Failed to backup file: .*\(The system cannot find the file specified\|No such file or directory\).*\)/
