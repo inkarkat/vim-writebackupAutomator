@@ -73,7 +73,7 @@ CONFIGURATION				  *writebackupAutomator-configuration*
 
 ==============================================================================
 INTEGRATION				    *writebackupAutomator-integration*
-							       |b:WriteBackup|
+							       *b:WriteBackup*
 You can influence the behavior of the writebackupAutomator plugin via the
 buffer-local variable b:WriteBackup. When this is 0, no automatic backup will
 be done even when previous backups exist. Contrariwise, when set to 1, the
