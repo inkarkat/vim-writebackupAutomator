@@ -12,6 +12,9 @@
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.10.006	10-Jun-2012	Never attempt to backup when the current buffer
+"				hasn't been persisted yet, but warn in case
+"				there are already backup files lying around.
 "   1.01.005	26-Feb-2012	Rename b:writebackup to b:WriteBackup to be
 "				consistent with the other configuration
 "				variables of the WriteBackup family, and to
@@ -72,16 +75,24 @@ function! s:InterceptWrite()
     endif
 
     let l:backupFiles = writebackupVersionControl#GetAllBackupsForFile(l:filespec)
+
+    if ! filereadable(l:filespec)
+	" When the buffer is not yet persisted, do not attempt a backup, since
+	" that requires a persisted original file.
+	if ! empty(l:backupFiles)
+	    " But warn when somehow old backups have been lying around, maybe
+	    " because the original file has been renamed and now re-created, but
+	    " the backups were left in place.
+	    call s:DelayedMessage("Skip automatic backup; this buffer hasn't been persisted yet, but old backups exist.")
+	endif
+
+	return
+    endif
+
     if empty(l:backupFiles)
 	" No backups exist.
 	if ! exists('b:WriteBackup') || ! b:WriteBackup
 	    " Unless the buffer has been flagged, do not perform a backup.
-	    return
-	endif
-
-	if ! filereadable(l:filespec)
-	    " When the buffer is flagged, but not yet persisted, do not attempt
-	    " a backup.
 	    return
 	endif
     else
@@ -136,17 +147,9 @@ function! s:MakeBackup( filespec )
 	\)
 	call s:DelayedMessage(l:message)
     elseif l:backupStatus == -1
-	if filereadable(a:filespec)
-	    " An error occurred; reuse the error message from
-	    " WriteBackupVersionControl.
-	    call s:DelayedMessage(v:errmsg, 'ErrorMsg')
-	else
-	    " The current buffer hasn't been persisted yet, but somehow old
-	    " backups have been lying around, maybe because the original file
-	    " has been renamed and now re-created, but the backups were left in
-	    " place.
-	    call s:DelayedMessage("Skip automatic backup; this buffer hasn't been persisted yet, but old backups exist.")
-	endif
+	" An error occurred; reuse the error message from
+	" WriteBackupVersionControl.
+	call s:DelayedMessage(v:errmsg, 'ErrorMsg')
     endif
 endfunction
 
