@@ -1,0 +1,1 @@
+/\("newfile.txt".*\n\)\+Skip automatic backup; this buffer hasn't been persisted yet, but old backups exist./
