@@ -3,11 +3,11 @@
 cd $TEMP/WriteBackupTest
 edit not\ important.txt
 %s/just/today's/
-    " Touch this. 
-    let b:writebackup = 0
+    " Touch this.
+    let b:WriteBackup = 0
     write
-    let b:writebackup = 1
+    let b:WriteBackup = 1
 write
 
 call ListFiles()
-call vimtest#Quit() 
+call vimtest#Quit()
