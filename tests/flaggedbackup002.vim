@@ -2,10 +2,10 @@
 
 cd $TEMP/WriteBackupTest
 edit new\ file.txt
-let b:writebackup = 1
+let b:WriteBackup = 1
 call setline(1, 'new text in a new file')
 write
 echomsg 'Test: No automatic backup attempted'
 
 call ListFiles()
-call vimtest#Quit() 
+call vimtest#Quit()
