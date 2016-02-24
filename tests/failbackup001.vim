@@ -1,5 +1,5 @@
-" Test failing automatic backup due to artificial failure. 
-" Tests that no backup file is created and an error message is printed. 
+" Test failing automatic backup due to artificial failure.
+" Tests that no backup file is created and an error message is printed.
 
 function! MyBackupDir(originalFilespec, isQueryOnly)
     if a:isQueryOnly
@@ -17,4 +17,4 @@ edit important.txt
 write
 
 call ListFiles()
-call vimtest#Quit() 
+call vimtest#Quit()
