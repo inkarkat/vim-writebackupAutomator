@@ -1,3 +1,1 @@
-/\("important.txt".*\n\)\+\(\s*Failed to backup file: artificial backup dir failure\)/
-
 /\("important.txt".*\n\)\+\(Failed to backup file: artificial backup dir failure\)/
