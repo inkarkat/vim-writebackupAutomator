@@ -4,11 +4,11 @@ call vimtest#ErrorAndQuitIf(g:WriteBackup_AvoidIdenticalBackups !=# 'redate', 'D
 
 cd $TEMP/WriteBackupTest
 edit important.txt
-    " Touch this. 
-    let b:writebackup = 0
+    " Touch this.
+    let b:WriteBackup = 0
     write
-    unlet b:writebackup
+    unlet b:WriteBackup
 write
 
 call ListFiles()
-call vimtest#Quit() 
+call vimtest#Quit()
