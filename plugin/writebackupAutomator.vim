@@ -4,14 +4,19 @@
 " DEPENDENCIES:
 "   - Requires Vim 7.0 or higher.
 "   - writebackup plugin (vimscript #1828), version 3.00 or higher.
-"   - writebackupVersionControl plugin (vimscript #1829), version 3.00 or higher.
+"   - writebackupVersionControl plugin (vimscript #1829), version 3.21 or higher.
+"   - ingo/err.vim autoload script
 
-" Copyright: (C) 2012 Ingo Karkat
+" Copyright: (C) 2012-2013 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.11.007	27-Jun-2013	Adapt to the introduction of command aborts in
+"				WriteBackupVersionControl version 3.21: Use
+"				ingo#err#Get() instead of v:errmsg to retrieve
+"				the error issued by the plugin.
 "   1.10.006	10-Jun-2012	Never attempt to backup when the current buffer
 "				hasn't been persisted yet, but warn in case
 "				there are already backup files lying around.
@@ -136,7 +141,7 @@ function! s:MakeBackup( filespec )
     if l:backupStatus == 0
 	" File is already backed up; turn the error into an informational
 	" message.
-	call s:DelayedMessage(v:errmsg)
+	call s:DelayedMessage(ingo#err#Get())
     elseif l:backupStatus == 1
 	" The writing of the backup file was successful.
 	" As it's cumbersome to get the backup filespec from
@@ -149,7 +154,7 @@ function! s:MakeBackup( filespec )
     elseif l:backupStatus == -1
 	" An error occurred; reuse the error message from
 	" WriteBackupVersionControl.
-	call s:DelayedMessage(v:errmsg, 'ErrorMsg')
+	call s:DelayedMessage(ingo#err#Get(), 'ErrorMsg')
     endif
 endfunction
 
