@@ -7,12 +7,16 @@
 "   - writebackupVersionControl plugin (vimscript #1829), version 3.21 or higher.
 "   - ingo/err.vim autoload script
 
-" Copyright: (C) 2012-2013 Ingo Karkat
+" Copyright: (C) 2012-2016 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
 "
 " REVISION	DATE		REMARKS
+"   1.11.008	13-May-2016	ENH: "Skip automatic backup; file was already
+"				modified today." message is annoying after each
+"				:write; Instead, give each message only once per
+"				buffer.
 "   1.11.007	27-Jun-2013	Adapt to the introduction of command aborts in
 "				WriteBackupVersionControl version 3.21: Use
 "				ingo#err#Get() instead of v:errmsg to retrieve
@@ -60,7 +64,17 @@ function! writebackupAutomator#Message( text, ... )
 endfunction
 function! s:DelayedMessage( text, ... )
     " To ensure that the message is visible to the user, print it via a
-    " fire-once autocmd _after_ the original buffer is written.
+    " fire-once autocmd _after_ the original buffer is written (but only once
+    " per buffer).
+    if ! exists('b:WriteBackup_AutomatorMessages')
+	let b:WriteBackup_AutomatorMessages = {}
+    endif
+    if ! has_key(b:WriteBackup_AutomatorMessages, a:text)
+	let b:WriteBackup_AutomatorMessages[a:text] = 1
+    else
+	return
+    endif
+
     augroup writebackupAutomatorNotification
 	execute printf('autocmd! BufWritePost <buffer> call writebackupAutomator#Message(%s)|autocmd! writebackupAutomatorNotification',
 	\   string(a:text) .
