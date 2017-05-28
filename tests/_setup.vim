@@ -1,3 +1,5 @@
+call vimtest#AddDependency('vim-ingo-library')
+
 runtime plugin/writebackup.vim
 runtime plugin/writebackupVersionControl.vim
 runtime plugin/writebackupAutomator.vim
