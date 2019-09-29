@@ -1,5 +1,5 @@
-"important.txt" 
+/"important.txt".*/
 
-"important.txt" 
+/"important.txt".*/
 
-This file is already backed up as '20080101b'
++\s*This file was already backed up as '20080101b'; redated as '20\d\{6}a'+
