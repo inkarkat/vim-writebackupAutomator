@@ -1,7 +1,7 @@
-"important.txt" 
+/"important.txt".*/
 
-/\s*"important.txt.20\d\{6}a" written/
++\s*"important.txt.20\d\{6}a" written+
 
-"important.txt" 
+/"important.txt".*/
 
-/Automatically backed up as "important.txt.20\d\{6}a"/
++Automatically backed up as "important.txt.20\d\{6}a"+
