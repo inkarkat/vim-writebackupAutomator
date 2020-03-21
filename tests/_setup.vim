@@ -1,4 +1,6 @@
 call vimtest#AddDependency('vim-ingo-library')
+call vimtest#AddDependency('vim-writebackup')
+call vimtest#AddDependency('vim-writebackupVersionControl')
 
 runtime plugin/writebackup.vim
 runtime plugin/writebackupVersionControl.vim
