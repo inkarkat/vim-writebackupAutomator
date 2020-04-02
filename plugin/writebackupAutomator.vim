@@ -1,46 +1,15 @@
-" writebackupAutomator.vim: writebackup plugin automatically writes a backup on
-" the first write.
+" writebackupAutomator.vim: writebackup plugin automatically writes a backup on the first write.
 "
 " DEPENDENCIES:
 "   - Requires Vim 7.0 or higher.
+"   - ingo-library.vim plugin
 "   - writebackup plugin (vimscript #1828), version 3.00 or higher.
 "   - writebackupVersionControl plugin (vimscript #1829), version 3.21 or higher.
-"   - ingo/err.vim autoload script
 
-" Copyright: (C) 2012-2016 Ingo Karkat
+" Copyright: (C) 2012-2020 Ingo Karkat
 "   The VIM LICENSE applies to this script; see ':help copyright'.
 "
 " Maintainer:	Ingo Karkat <ingo@karkat.de>
-"
-" REVISION	DATE		REMARKS
-"   1.11.008	13-May-2016	ENH: "Skip automatic backup; file was already
-"				modified today." message is annoying after each
-"				:write; Instead, give each message only once per
-"				buffer.
-"   1.11.007	27-Jun-2013	Adapt to the introduction of command aborts in
-"				WriteBackupVersionControl version 3.21: Use
-"				ingo#err#Get() instead of v:errmsg to retrieve
-"				the error issued by the plugin.
-"   1.10.006	10-Jun-2012	Never attempt to backup when the current buffer
-"				hasn't been persisted yet, but warn in case
-"				there are already backup files lying around.
-"   1.01.005	26-Feb-2012	Rename b:writebackup to b:WriteBackup to be
-"				consistent with the other configuration
-"				variables of the WriteBackup family, and to
-"				avoid connotation with the built-in
-"				'writebackup' setting.
-"   1.00.004	16-Feb-2012	Never perform an automatic backup when the
-"				original file was already modified today.
-"   	003 	14-Feb-2012	Consider new default "redate" for
-"				g:WriteBackup_AvoidIdenticalBackups that renames
-"				an identical backup from an earlier date to be
-"				the first backup of today.
-"	002 	13-Feb-2012	Implement missing bits and pieces, driven by the
-"				test suite.
-"				Make backup success and error messages visible
-"				to the user through a fire-once autocmd on
-"				BufWritePost.
-"	001	10-Feb-2012	file creation
 
 " Avoid installing twice or when in unsupported Vim version.
 if exists('g:loaded_writebackupAutomator') || (v:version < 700)
