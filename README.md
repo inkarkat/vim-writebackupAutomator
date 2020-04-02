@@ -94,7 +94,7 @@ below).
 HISTORY
 ------------------------------------------------------------------------------
 
-##### 1.11    RELEASEME
+##### 1.11    02-Apr-2020
 - Adapt to the introduction of command aborts in WriteBackupVersionControl
   version 3.21.
 
